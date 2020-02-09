@@ -10,6 +10,9 @@ import (
 
 var quitGame chan bool
 
+const maxX = 10
+const maxY = 10
+
 func min(x, y int) int {
 	if x <= y {
 		return x
@@ -28,9 +31,98 @@ func toggle(i []js.Value) {
 		newClass = strings.Replace(class, "off", "on", -1)
 	}
 
-	fmt.Println(class)
-	fmt.Println(newClass)
 	js.Global().Get("document").Call("getElementById", address).Set("className", newClass)
+}
+
+func getCellInt(x, y int) js.Value {
+	return js.Global().Get("document").Call("getElementById", fmt.Sprintf("cell-%d-%d", x, y))
+}
+
+func isOnInt(cell js.Value) bool {
+	if cell.String() == "null" {
+		return false
+	}
+
+	class := cell.Get("className").String()
+
+	if strings.Contains(class, "on") {
+		return true
+	}
+
+	return false
+}
+
+func turnOnInt(cell js.Value) {
+	class := cell.Get("className").String()
+	newClass := strings.Replace(class, "off", "on", -1)
+	cell.Set("className", newClass)
+}
+
+func turnOffInt(cell js.Value) {
+	class := cell.Get("className").String()
+	newClass := strings.Replace(class, "on", "off", -1)
+	cell.Set("className", newClass)
+}
+
+func gameOfLifeInt() {
+	board := make([][]bool, maxY)
+	for y := range board {
+		board[y] = make([]bool, maxX)
+	}
+
+	for x := 0; x < maxX; x++ {
+		for y := 0; y < maxY; y++ {
+			board[x][y] = gameOfLifeSingleInt(x, y)
+		}
+	}
+
+	for x := 0; x < maxX; x++ {
+		for y := 0; y < maxY; y++ {
+			if board[x][y] {
+				turnOnInt(getCellInt(x, y))
+			} else {
+				turnOffInt(getCellInt(x, y))
+			}
+		}
+	}
+
+}
+
+func getAliveNeighbourCount(x, y int) int {
+	nCell := getCellInt(x, y-1)
+	neCell := getCellInt(x+1, y-1)
+	eCell := getCellInt(x+1, y)
+	seCell := getCellInt(x+1, y+1)
+	sCell := getCellInt(x, y+1)
+	swCell := getCellInt(x-1, y+1)
+	wCell := getCellInt(x-1, y)
+	nwCell := getCellInt(x-1, y-1)
+
+	neighbours := []js.Value{nCell, neCell, eCell, seCell, sCell, swCell, wCell, nwCell}
+
+	aliveNeighbourCount := 0
+	for _, neighour := range neighbours {
+		if isOnInt(neighour) {
+			aliveNeighbourCount++
+		}
+	}
+
+	return aliveNeighbourCount
+}
+
+func gameOfLifeSingleInt(x, y int) bool {
+	aliveNeighbourCount := getAliveNeighbourCount(x, y)
+
+	if isOnInt(getCellInt(x, y)) {
+		if aliveNeighbourCount < 2 || aliveNeighbourCount > 3 {
+			return false
+		}
+		return true
+	} else if aliveNeighbourCount == 3 {
+		return true
+	}
+
+	return false
 }
 
 func onInt(x, y int) {
@@ -70,9 +162,7 @@ func gameInt(delay int) {
 		case <-quitGame:
 			return
 		default:
-			onInt(3, 4)
-			time.Sleep(time.Duration(delay) * time.Millisecond)
-			offInt(3, 4)
+			gameOfLifeInt()
 			time.Sleep(time.Duration(delay) * time.Millisecond)
 		}
 	}
