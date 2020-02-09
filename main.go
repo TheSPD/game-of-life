@@ -17,32 +17,8 @@ func min(x, y int) int {
 	return y
 }
 
-func add(i []js.Value) {
-	value1 := js.Global().Get("document").Call("getElementById", i[0].String()).Get("value").String()
-	value2 := js.Global().Get("document").Call("getElementById", i[1].String()).Get("value").String()
-
-	int1, _ := strconv.Atoi(value1)
-	int2, _ := strconv.Atoi(value2)
-
-	js.Global().Get("document").Call("getElementById", i[2].String()).Set("value", int1+int2)
-}
-
-func subtract(i []js.Value) {
-	value1 := js.Global().Get("document").Call("getElementById", i[0].String()).Get("value").String()
-	value2 := js.Global().Get("document").Call("getElementById", i[1].String()).Get("value").String()
-
-	int1, _ := strconv.Atoi(value1)
-	int2, _ := strconv.Atoi(value2)
-
-	js.Global().Get("document").Call("getElementById", i[2].String()).Set("value", int1-int2)
-}
-
 func toggle(i []js.Value) {
-	x, _ := strconv.Atoi(i[0].String())
-	y, _ := strconv.Atoi(i[1].String())
-
-	address := fmt.Sprintf("cell-%d-%d", x, y)
-
+	address := i[0].String()
 	class := js.Global().Get("document").Call("getElementById", address).Get("className").String()
 
 	var newClass string
@@ -57,13 +33,6 @@ func toggle(i []js.Value) {
 	js.Global().Get("document").Call("getElementById", address).Set("className", newClass)
 }
 
-func on(i []js.Value) {
-	x, _ := strconv.Atoi(i[0].String())
-	y, _ := strconv.Atoi(i[1].String())
-
-	onInt(x, y)
-}
-
 func onInt(x, y int) {
 	address := fmt.Sprintf("cell-%d-%d", x, y)
 
@@ -72,13 +41,6 @@ func onInt(x, y int) {
 	newClass := strings.Replace(class, "off", "on", -1)
 
 	js.Global().Get("document").Call("getElementById", address).Set("className", newClass)
-}
-
-func off(i []js.Value) {
-	x, _ := strconv.Atoi(i[0].String())
-	y, _ := strconv.Atoi(i[1].String())
-
-	offInt(x, y)
 }
 
 func offInt(x, y int) {
@@ -121,11 +83,7 @@ func stopGame(i []js.Value) {
 }
 
 func registerCallbacks() {
-	js.Global().Set("add", js.NewCallback(add))
-	js.Global().Set("subtract", js.NewCallback(subtract))
 	js.Global().Set("toggle", js.NewCallback(toggle))
-	js.Global().Set("on", js.NewCallback(on))
-	js.Global().Set("off", js.NewCallback(off))
 	js.Global().Set("startGame", js.NewCallback(startGame))
 	js.Global().Set("stopGame", js.NewCallback(stopGame))
 }
