@@ -20,7 +20,7 @@ func min(x, y int) int {
 	return y
 }
 
-func toggle(i []js.Value) {
+func toggle(this js.Value, i []js.Value) interface{} {
 	address := i[0].String()
 	class := js.Global().Get("document").Call("getElementById", address).Get("className").String()
 
@@ -32,6 +32,8 @@ func toggle(i []js.Value) {
 	}
 
 	js.Global().Get("document").Call("getElementById", address).Set("className", newClass)
+
+	return nil
 }
 
 func getCellInt(x, y int) js.Value {
@@ -39,7 +41,7 @@ func getCellInt(x, y int) js.Value {
 }
 
 func isOnInt(cell js.Value) bool {
-	if cell.String() == "null" {
+	if cell.String() == "<null>" {
 		return false
 	}
 
@@ -145,7 +147,7 @@ func offInt(x, y int) {
 	js.Global().Get("document").Call("getElementById", address).Set("className", newClass)
 }
 
-func startGame(i []js.Value) {
+func startGame(this js.Value, i []js.Value) interface{} {
 	minDelay := 100
 	baseDelay := 1000
 	speedSettings := 10
@@ -154,6 +156,8 @@ func startGame(i []js.Value) {
 	delay := baseDelay - (baseDelay/speedSettings)*speed + minDelay
 
 	go gameInt(delay)
+
+	return nil
 }
 
 func gameInt(delay int) {
@@ -168,14 +172,20 @@ func gameInt(delay int) {
 	}
 }
 
-func stopGame(i []js.Value) {
+func stopGameInt() {
 	quitGame <- true
 }
 
+func stopGame(this js.Value, i []js.Value) interface{} {
+	go stopGameInt()
+
+	return nil
+}
+
 func registerCallbacks() {
-	js.Global().Set("toggle", js.NewCallback(toggle))
-	js.Global().Set("startGame", js.NewCallback(startGame))
-	js.Global().Set("stopGame", js.NewCallback(stopGame))
+	js.Global().Set("toggle", js.FuncOf(toggle))
+	js.Global().Set("startGame", js.FuncOf(startGame))
+	js.Global().Set("stopGame", js.FuncOf(stopGame))
 }
 
 func main() {
