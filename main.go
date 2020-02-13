@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"sync"
 	"syscall/js"
 	"time"
 )
 
 var quitGame chan bool
-var wg sync.WaitGroup
 
 const maxX = 10
 const maxY = 10
